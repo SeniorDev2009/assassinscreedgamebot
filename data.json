@@ -1,0 +1,386 @@
+{
+  "1218800347": {
+    "username": "",
+    "gold": 239,
+    "guild_xp": 122,
+    "guild_level": 2,
+    "assassins": [
+      {
+        "id": "1764044751897765",
+        "name": "Fael84",
+        "power": 3,
+        "level": 3,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1764062997322195",
+        "name": "Horo13",
+        "power": 7,
+        "level": 4,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      }
+    ],
+    "inventory": [],
+    "last_saved": 1763963830
+  },
+  "7422717554": {
+    "username": "",
+    "gold": 52,
+    "guild_xp": 195,
+    "guild_level": 6,
+    "assassins": [
+      {
+        "id": "1763964190314414",
+        "name": "Boran8",
+        "power": 5,
+        "level": 15,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": {
+            "name": "Klassik qilich",
+            "type": "weapon",
+            "power_mod": 4,
+            "rarity": "uncommon"
+          },
+          "armor": {
+            "name": "Qalin qilich",
+            "type": "armor",
+            "power_mod": 4,
+            "rarity": "rare"
+          }
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763964447177911",
+        "name": "Cyrus9",
+        "power": 4,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964488003235",
+        "name": "Horo69",
+        "power": 5,
+        "level": 2,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964495016147",
+        "name": "Cyrus55",
+        "power": 6,
+        "level": 3,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964715598424",
+        "name": "Boran1",
+        "power": 5,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964715604211",
+        "name": "Cyrus3",
+        "power": 4,
+        "level": 4,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964715607472",
+        "name": "Galen10",
+        "power": 7,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763964715612962",
+        "name": "Galen25",
+        "power": 7,
+        "level": 5,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763964715614374",
+        "name": "Ira90",
+        "power": 3,
+        "level": 8,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763964715636690",
+        "name": "Cyrus58",
+        "power": 7,
+        "level": 2,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "dead"
+      },
+      {
+        "id": "1763965149818618",
+        "name": "Ara37",
+        "power": 5,
+        "level": 3,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965150695323",
+        "name": "Boran59",
+        "power": 4,
+        "level": 2,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965151565982",
+        "name": "Jax20",
+        "power": 5,
+        "level": 4,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965152319498",
+        "name": "Ira66",
+        "power": 3,
+        "level": 5,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965325353952",
+        "name": "Horo82",
+        "power": 6,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965325575998",
+        "name": "Ira58",
+        "power": 7,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965325792573",
+        "name": "Eron56",
+        "power": 3,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965326015164",
+        "name": "Ira69",
+        "power": 4,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965326246615",
+        "name": "Eron79",
+        "power": 4,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965327833842",
+        "name": "Galen24",
+        "power": 6,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965328673759",
+        "name": "Boran77",
+        "power": 6,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      },
+      {
+        "id": "1763965329804624",
+        "name": "Dara98",
+        "power": 3,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      }
+    ],
+    "inventory": [
+      {
+        "name": "Qalin qilich",
+        "type": "armor",
+        "power_mod": 6,
+        "rarity": "uncommon"
+      },
+      {
+        "name": "Klassik qilich",
+        "type": "weapon",
+        "power_mod": 4,
+        "rarity": "uncommon"
+      },
+      {
+        "name": "Qalin qilich",
+        "type": "armor",
+        "power_mod": 4,
+        "rarity": "rare"
+      }
+    ],
+    "last_saved": 1763964168
+  },
+  "6390512871": {
+    "username": "The_Senior",
+    "gold": 41,
+    "guild_xp": 10,
+    "guild_level": 1,
+    "assassins": [
+      {
+        "id": "17640628118907",
+        "name": "Cyrus92",
+        "power": 7,
+        "level": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "equipment": {
+          "weapon": null,
+          "armor": null
+        },
+        "status": "ready"
+      }
+    ],
+    "inventory": [],
+    "last_saved": 1764062810
+  }
+}
