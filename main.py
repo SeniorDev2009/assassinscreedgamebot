@@ -4,12 +4,13 @@ import random
 import time
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+import os
 
 # ====== SOZLAMALAR ======
-TOKEN = "8535791222:AAFnHkaeYmoDS32QYOafpZlDO_wl3nd6K1U"   # <-- BotFather tokeningizni shu yerga qo'ying
+TOKEN = os.getenv("TOKEN")   # <-- BotFather tokeningizni shu yerga qo'ying
 DB_FILE = "guild_game.db"
 
-bot = Bot(token=TOKEN)
+bot = Bot(token=os.getenv("TOKEN"))
 dp = Dispatcher(bot)
 
 # ====== SQLite ulanish ======
@@ -424,5 +425,4 @@ async def fallback(m: types.Message):
 
 # ====== Start bot ======
 if __name__ == "__main__":
-    print("Bot ishga tushmoqda...")
     executor.start_polling(dp, skip_updates=True)
