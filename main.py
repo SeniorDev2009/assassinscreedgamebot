@@ -1,17 +1,23 @@
 # main.py
+import os
 import sqlite3
 import random
 import time
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-import os
+import asyncio
+
+from aiogram import Bot, Dispatcher
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 # ====== SOZLAMALAR ======
-TOKEN = os.getenv("TOKEN")   # <-- BotFather tokeningizni shu yerga qo'ying
+TOKEN = os.getenv("TOKEN")
+if not TOKEN:
+    raise RuntimeError("TOKEN muhit o'zgaruvchisi topilmadi. Render/Env ga TOKEN qo'ying.")
+
 DB_FILE = "guild_game.db"
 
-bot = Bot(token=os.getenv("TOKEN"))
-dp = Dispatcher(bot)
+# Bot va Dispatcher (aiogram 3)
+bot = Bot(token=TOKEN, parse_mode="HTML")
+dp = Dispatcher()
 
 # ====== SQLite ulanish ======
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -55,7 +61,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 ''')
 conn.commit()
 
-# ====== Yordamchi funksiyalar ======
+# ====== Yordamchi funksiyalar (DB) ======
 def ensure_user(uid: int, username: str = None):
     cur.execute("SELECT * FROM users WHERE user_id=?", (uid,))
     if not cur.fetchone():
@@ -193,28 +199,29 @@ def pvp_battle_rows(my_row, opp_row):
         detail = {"my_power": my_p, "opp_power": opp_p, "my_crit": my_crit, "opp_crit": opp_crit}
         return my_row, opp_row, gold_win, detail
     else:
-        gold_win = random.randint(0,0)  # loser gets nothing; winner will be other row's owner who receives gold
+        gold_win = 0
         detail = {"my_power": my_p, "opp_power": opp_p, "my_crit": my_crit, "opp_crit": opp_crit}
         return opp_row, my_row, gold_win, detail
 
-# ====== Handlers ======
-@dp.message_handler(commands=["start","help"])
-async def cmd_start(message: types.Message):
-    ensure_user(message.from_user.id, message.from_user.username)
-    text = ("🕵️‍♂️ *Assassin's Guild* ga xush kelibsiz!\n"
-            "Menyudan boshlang: 👤 Profil, 👥 Assassinlar, 🗡 Yollash, 🎯 Missiyalar, 🎒 Inventar, ⚔️ PVP")
-    await message.reply(text, parse_mode="HTML", reply_markup=main_menu)
+# ====== Handlers (aiogram 3 style) ======
 
-@dp.message_handler(lambda m: m.text and "Profil" in m.text)
-async def handle_profile(m: types.Message):
+# /start
+async def cmd_start(message: Message):
+    ensure_user(message.from_user.id, message.from_user.username)
+    text = ("🕵️‍♂️ Assassin's Guild ga xush kelibsiz!\n"
+            "Menyudan boshlang: 👤 Profil, 👥 Assassinlar, 🗡 Yollash, 🎯 Missiyalar, 🎒 Inventar, ⚔️ PVP")
+    await message.reply(text, reply_markup=main_menu)
+
+# Profil
+async def handle_profile(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
     u = get_user(m.from_user.id)
     text = (f"👤 Profil: {u[1]}\n💰 Oltin: {u[2]}\n"
             f"🏛 Guild lvl: {u[4]} (XP: {u[3]}/{guild_xp_needed(u[4])})")
     await m.reply(text, reply_markup=main_menu)
 
-@dp.message_handler(lambda m: m.text and "Assassinlar" in m.text)
-async def handle_assassins(m: types.Message):
+# Assassinlar
+async def handle_assassins(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
     ass = list_assassins(m.from_user.id)
     if not ass:
@@ -222,13 +229,12 @@ async def handle_assassins(m: types.Message):
         return
     lines = []
     for row in ass:
-        # row: (assassin_id, user_id, name, power, level, hp, max_hp, status, weapon, armor)
         eff = calc_assassin_effective_power_from_row(row)
         lines.append(f"{row[2]} | Lv:{row[4]} | P:{row[3]} | Eff:{eff} | Status:{row[7]}")
     await m.reply("👥 Assassinlaringiz:\n" + "\n".join(lines), reply_markup=main_menu)
 
-@dp.message_handler(lambda m: m.text and "Yollash" in m.text)
-async def handle_hire(m: types.Message):
+# Yollash
+async def handle_hire(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
     u = get_user(m.from_user.id)
     price = 20 + u[4] * 10
@@ -237,19 +243,17 @@ async def handle_hire(m: types.Message):
         return
     update_user_gold(m.from_user.id, u[2] - price)
     ass_id, name, power = create_assassin(m.from_user.id)
-    # kamdan-kam inventar item berish
     if random.random() < 0.20:
         itype = random.choice(["weapon","armor"])
         iname = f"{'Klassik' if itype=='weapon' else 'Qalin'} {random.choice(['qilich','bolta','kama','zirh'])}"
         add_item(m.from_user.id, iname, itype, random.randint(1,5), random.choice(["common","uncommon","rare"]))
     await m.reply(f"🗡 Yangi assassin: {name} (P:{power}). Narx: {price} oltin.", reply_markup=main_menu)
 
-@dp.message_handler(lambda m: m.text and "Missiyalar" in m.text)
-async def handle_missions(m: types.Message):
+# Missiyalar - inline
+async def handle_missions(m: Message):
     await m.reply("🎯 Missiya tanlang:", reply_markup=missions_inline)
 
-@dp.callback_query_handler(lambda c: c.data and c.data.startswith("mission_"))
-async def cb_mission(c: types.CallbackQuery):
+async def cb_mission(c: CallbackQuery):
     ensure_user(c.from_user.id, c.from_user.username)
     difficulty = c.data.split("_")[1]  # easy/medium/hard
     rows = list_assassins(c.from_user.id)
@@ -262,39 +266,34 @@ async def cb_mission(c: types.CallbackQuery):
     success, gold, xp, died, item = try_mission_row(ass_row, difficulty)
     resp_text = ""
     if success:
-        # update gold and xp
         u = get_user(c.from_user.id)
         update_user_gold(c.from_user.id, u[2] + gold)
         leveled, new_lvl = update_user_xp_and_level(c.from_user.id, xp)
-        # level up assassin locally: increase level in DB
         cur.execute("UPDATE assassins SET level=? WHERE assassin_id=?", (ass_row[4]+1, ass_row[0]))
-        # set status ready
         update_assassin_field(ass_row[0], "status", "ready")
         if item:
             add_item(c.from_user.id, item["name"], item["type"], item["power_mod"], item["rarity"])
-        resp_text = (f"✅ Missiya muvaffaqiyatli!\nAssassin: *{ass_row[2]}* Lv:+1\n"
+        resp_text = (f"✅ Missiya muvaffaqiyatli!\nAssassin: <b>{ass_row[2]}</b> Lv:+1\n"
                      f"💰 Gold +{gold}  XP +{xp}")
         if item:
             resp_text += f"\n🎁 Topildi: {item['name']} (+{item['power_mod']})"
         if leveled:
             resp_text += f"\n🏛 Guild darajangiz oshdi: {new_lvl}"
     else:
-        # fail: maybe death
         if died:
             update_assassin_field(ass_row[0], "status", "dead")
-            resp_text = f"❌ Missiya muvaffaqiyatsiz. Afsuski *{ass_row[2]}* o'ldirildi."
+            resp_text = f"❌ Missiya muvaffaqiyatsiz. Afsuski <b>{ass_row[2]}</b> o'ldirildi."
         else:
-            # penalty gold
             u = get_user(c.from_user.id)
             lost = min(u[2], random.randint(2, 15))
             update_user_gold(c.from_user.id, u[2] - lost)
             update_assassin_field(ass_row[0], "status", "ready")
             resp_text = f"❌ Missiya muvaffaqiyatsiz. Assassin qaytdi, lekin siz {lost} gold yo'qotdingiz."
-    await bot.send_message(c.from_user.id, resp_text, parse_mode="HTML", reply_markup=main_menu)
+    await bot.send_message(c.from_user.id, resp_text, reply_markup=main_menu)
     await bot.answer_callback_query(c.id, "")
 
-@dp.message_handler(lambda m: m.text and "Inventar" in m.text)
-async def handle_inventory(m: types.Message):
+# Inventar
+async def handle_inventory(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
     items = list_inventory(m.from_user.id)
     if not items:
@@ -306,8 +305,8 @@ async def handle_inventory(m: types.Message):
     lines.append("\n/equip <index> — itemni birinchi assassin-ga jihozlash")
     await m.reply("🎒 Inventaringiz:\n" + "\n".join(lines), reply_markup=main_menu)
 
-@dp.message_handler(commands=["equip"])
-async def cmd_equip(m: types.Message):
+# /equip
+async def cmd_equip(m: Message):
     args = m.get_args().strip()
     if not args.isdigit():
         await m.reply("Foydalanish: /equip <index>", reply_markup=main_menu)
@@ -322,51 +321,27 @@ async def cmd_equip(m: types.Message):
     if not assassins:
         await m.reply("Assassin yo'q. Avval yollang.", reply_markup=main_menu)
         return
-    # choose first assassin (simple)
     ass = assassins[0]
     field = "weapon" if item[3] == "weapon" else "armor"
     cur.execute(f"UPDATE assassins SET {field}=? WHERE assassin_id=?", (f"{item[2]}+{item[4]}", ass[0]))
     conn.commit()
     await m.reply(f"{item[2]} jihozlandi: {ass[2]}", reply_markup=main_menu)
 
-@dp.message_handler(lambda m: m.text and "Guild" in m.text)
-async def handle_guild(m: types.Message):
+# Guild
+async def handle_guild(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
     u = get_user(m.from_user.id)
     text = (f"🏛 Guild ma'lumotlari\nDaraja: {u[4]}\nXP: {u[3]}/{guild_xp_needed(u[4])}\nOltin: {u[2]}")
     await m.reply(text, reply_markup=main_menu)
 
-@dp.message_handler(lambda m: m.text and "Yollash" in m.text)
-async def alias_hire(m: types.Message):
-    # alias so that both "🗡 Yollash" and typed "Yollash" work
-    await handle_hire(m)
-
-@dp.message_handler(lambda m: m.text and "Missiyalar" in m.text)
-async def alias_missions(m: types.Message):
-    await handle_missions(m)
-
-@dp.message_handler(lambda m: m.text and "Assassinlar" in m.text)
-async def alias_assassins(m: types.Message):
-    await handle_assassins(m)
-
-@dp.message_handler(lambda m: m.text and "Profil" in m.text)
-async def alias_profile(m: types.Message):
-    await handle_profile(m)
-
-@dp.message_handler(lambda m: m.text and "Inventar" in m.text)
-async def alias_inventory(m: types.Message):
-    await handle_inventory(m)
-
-@dp.message_handler(lambda m: m.text and "⚔️ PVP" in m.text or (m.text and "PVP" in m.text))
-async def handle_pvp(m: types.Message):
+# PVP
+async def handle_pvp(m: Message):
     ensure_user(m.from_user.id, m.from_user.username)
-    # need at least 2 users with assassins
     cur.execute("SELECT user_id FROM users WHERE user_id!=?", (m.from_user.id,))
     opponents = [row[0] for row in cur.fetchall()]
     if not opponents:
         await m.reply("Hozircha raqib yo'q.", reply_markup=main_menu)
         return
-    # pick opponent who has ready assassin
     random.shuffle(opponents)
     opponent_id = None
     opp_ass_row = None
@@ -380,29 +355,23 @@ async def handle_pvp(m: types.Message):
     if not opponent_id:
         await m.reply("Hozircha raqib topilmadi (tayyor assassin yo'q).", reply_markup=main_menu)
         return
-    # pick my assassin
     my_rows = list_assassins(m.from_user.id)
     my_ready = [r for r in my_rows if r[7] == "ready"]
     if not my_ready:
         await m.reply("Sizda tayyor assassin yo'q.", reply_markup=main_menu)
         return
     my_ass = random.choice(my_ready)
-    # run battle
     winner_row, loser_row, gold_win, detail = pvp_battle_rows(my_ass, opp_ass_row)
-    # determine winner owner
     winner_owner = m.from_user.id if winner_row[1] == m.from_user.id else opponent_id
     loser_owner = m.from_user.id if loser_row[1] == m.from_user.id else opponent_id
-    # credit gold to winner owner
     winner_user = get_user(winner_owner)
     update_user_gold(winner_owner, winner_user[2] + gold_win)
-    # prepare message showing both players and assassins
     my_user = get_user(m.from_user.id)
     opp_user = get_user(opponent_id)
     result_msg = ("⚔️ PVP Natija\n\n"
                   f"🧑‍  {my_user[1]}  vs  {opp_user[1]}\n\n"
-                  f"G'olib: *{winner_row[2]}* (Power: {detail['my_power'] if winner_row==my_ass else detail['opp_power']})\n"
-                  f"Mag'lub: *{loser_row[2]}* (Power: {detail['opp_power'] if loser_row==opp_ass_row else detail['my_power']})\n")
-    # show critical info
+                  f"G'olib: <b>{winner_row[2]}</b> (Power: {detail['my_power'] if winner_row==my_ass else detail['opp_power']})\n"
+                  f"Mag'lub: <b>{loser_row[2]}</b> (Power: {detail['opp_power'] if loser_row==opp_ass_row else detail['my_power']})\n")
     crit_lines = []
     if detail.get("my_crit"):
         crit_lines.append(f"{my_ass[2]} qattiq zarba (kritikal) berdi.")
@@ -411,18 +380,46 @@ async def handle_pvp(m: types.Message):
     if crit_lines:
         result_msg += "\n" + "\n".join(crit_lines)
     result_msg += f"\n\n🏅 G'olibga +{gold_win} oltin"
-    await m.reply(result_msg, parse_mode="HTML", reply_markup=main_menu)
+    await m.reply(result_msg, reply_markup=main_menu)
 
-@dp.message_handler(commands=["save"])
-async def cmd_save(m: types.Message):
-    # SQLite commits automatically; provide a small confirmation
+# Save
+async def cmd_save(m: Message):
     conn.commit()
     await m.reply("Ma'lumotlar saqlandi ✅", reply_markup=main_menu)
 
-@dp.message_handler()
-async def fallback(m: types.Message):
+# Unknown / fallback
+async def fallback(m: Message):
     await m.reply("Buyruqni tushunmadim. Tugmalardan foydalaning.", reply_markup=main_menu)
 
-# ====== Start bot ======
+# ====== Register handlers ======
+def register_handlers():
+    # start/help
+    dp.message.register(cmd_start, lambda m: m.text and (m.text.startswith("/start") or m.text.startswith("/help")))
+    # commands
+    dp.message.register(cmd_save, lambda m: m.text and m.text.startswith("/save"))
+    dp.message.register(cmd_equip, lambda m: m.text and m.text.startswith("/equip"))
+    # menu buttons (text contains)
+    dp.message.register(handle_profile, lambda m: m.text and "Profil" in m.text)
+    dp.message.register(handle_assassins, lambda m: m.text and "Assassinlar" in m.text)
+    dp.message.register(handle_hire, lambda m: m.text and "Yollash" in m.text)
+    dp.message.register(handle_missions, lambda m: m.text and "Missiyalar" in m.text)
+    dp.message.register(handle_inventory, lambda m: m.text and "Inventar" in m.text)
+    dp.message.register(handle_guild, lambda m: m.text and "Guild" in m.text)
+    dp.message.register(handle_pvp, lambda m: (m.text and "⚔️ PVP" in m.text) or (m.text and "PVP" in m.text))
+    # inline callback for missions
+    dp.callback_query.register(cb_mission, lambda c: c.data and c.data.startswith("mission_"))
+    # fallback (last)
+    dp.message.register(fallback)
+
+# ====== Entrypoint ======
+async def main():
+    register_handlers()
+    print("Bot ishga tushmoqda...")
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
+        conn.close()
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
